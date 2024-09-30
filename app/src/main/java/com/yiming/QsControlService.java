@@ -1,9 +1,16 @@
 package com.yiming;
 
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
 import android.graphics.drawable.Icon;
 import android.service.quicksettings.Tile;
 import android.service.quicksettings.TileService;
+
+import androidx.core.app.NotificationCompat;
 
 
 public class QsControlService extends TileService {
@@ -22,6 +29,9 @@ public class QsControlService extends TileService {
             tile.updateTile();
         }
 
+
+
+
     }
 
     public void refresh() {
@@ -35,10 +45,17 @@ public class QsControlService extends TileService {
     public void onClick() {
         super.onClick();
         System.out.println("QsControlService click");
+        Intent intent = new Intent(this,MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        this.startActivity(intent);
+
+
 
 //        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 //        imm.showInputMethodPicker();
     }
+
+
 
 
 }

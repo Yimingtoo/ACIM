@@ -1,18 +1,24 @@
 package com.yiming;
 
 
+import static java.security.AccessController.getContext;
+
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.ActivityManager;
+import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.content.Intent;
@@ -24,12 +30,9 @@ public class MainActivity extends AppCompatActivity {
     private final int NOT_CONNECT = 0;
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-    }
-
-    @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.i("my_test", "onCreate");
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -62,12 +65,45 @@ public class MainActivity extends AppCompatActivity {
 
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        Log.i("my_test", "onStart");
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
+        Log.i("my_test", "onResume");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.i("my_test", "onPause");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.i("my_test", "onStop");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.i("my_test", "onDestroy");
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        Log.i("my_test", "onRestart");
     }
 
 
-    //判断本应用是否已经位于最前端：已经位于最前端时，返回 true；否则返回 false
+    /**
+     * 判断本应用是否已经位于最前端：已经位于最前端时，返回 true；否则返回 false
+     */
     public static boolean isRunningForeground(Context context) {
         ActivityManager activityManager = (ActivityManager) context.getSystemService(ACTIVITY_SERVICE);
         List<ActivityManager.RunningAppProcessInfo> appProcessInfoList = activityManager.getRunningAppProcesses();
@@ -86,6 +122,7 @@ public class MainActivity extends AppCompatActivity {
      */
     public void getPermission() {
         System.out.println("isIgnoringBatteryOptimizations" + isIgnoringBatteryOptimizations());
+        // 获得后台工作和自启动权限
         if (!isIgnoringBatteryOptimizations()) {
             System.out.println("没有在白名单");
             // 后台保活
@@ -99,7 +136,11 @@ public class MainActivity extends AppCompatActivity {
 
         } else {
             System.out.println("在白名单");
+
         }
+
+        RequestOverlayPermission(this);
+
     }
 
     /**
@@ -130,5 +171,31 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
+
+
+
+    public static boolean CanShowFloat = false;
+
+    private static final int REQUEST_OVERLAY = 5004;
+
+    /** 动态请求悬浮窗权限 */
+    public static void RequestOverlayPermission(Activity Instatnce)
+    {
+        if (Build.VERSION.SDK_INT >= 23)
+        {
+            if (!Settings.canDrawOverlays(Instatnce))
+            {
+                String ACTION_MANAGE_OVERLAY_PERMISSION = "android.settings.action.MANAGE_OVERLAY_PERMISSION";
+                Intent intent = new Intent(ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + Instatnce.getPackageName()));
+
+                Instatnce.startActivityForResult(intent, REQUEST_OVERLAY);
+            }
+            else
+            {
+                CanShowFloat = true;
+            }
+        }
+    }
+
 
 }
