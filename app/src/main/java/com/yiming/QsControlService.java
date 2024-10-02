@@ -12,11 +12,14 @@ import android.app.StatusBarManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Rect;
 import android.graphics.drawable.Icon;
 import android.os.Build;
+import android.os.Bundle;
 import android.service.quicksettings.Tile;
 import android.service.quicksettings.TileService;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -30,7 +33,7 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 
-public class QsControlService extends TileService {
+public class QsControlService extends TileService{
 
 
     @Override
@@ -45,15 +48,18 @@ public class QsControlService extends TileService {
             tile.setIcon(Icon.createWithResource(this, R.drawable.ic_keyboard));
             tile.updateTile();
         }
+    }
 
-
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
     }
 
     @Override
     public void onStartListening() {
 
         super.onStartListening();
-        createAndShowNotification(this);
+//        createAndShowNotification(this);
     }
 
     public void refresh() {
@@ -69,9 +75,14 @@ public class QsControlService extends TileService {
         System.out.println("QsControlService click");
         Intent intent = new Intent(this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        String data = "QsControlService";
+        intent.putExtra("data", data);
         this.startActivity(intent);
     }
 
+    /**
+     * 获取栈顶Activity
+     */
     public static ComponentName getTopActivity(Context context) {
         ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         if (activityManager != null) {
@@ -87,6 +98,7 @@ public class QsControlService extends TileService {
     private static final String CHANNEL_ID = "test_channel";
     private static final String CHANNEL_NAME = "Test Channel";
     private static final int NOTIFICATION_ID = 1;
+
     public static void createAndShowNotification(Context context) {
         // 创建 NotificationManager
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -124,6 +136,7 @@ public class QsControlService extends TileService {
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, flags);
         return pendingIntent;
     }
+
 
 
 

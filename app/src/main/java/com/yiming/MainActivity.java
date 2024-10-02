@@ -11,15 +11,22 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.IntentFilter;
+import android.graphics.Point;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.CountDownTimer;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.PowerManager;
 import android.provider.Settings;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
@@ -32,11 +39,14 @@ import java.util.List;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnTouchListener {
     private static final String TAG = "my_test1";
     private final int NOT_CONNECT = 0;
+
+    private boolean finishFlag = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,11 +59,19 @@ public class MainActivity extends AppCompatActivity {
 
         getPermission();
         initEvent();
-
-//        imPop();
     }
 
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        System.out.println("onTouch" + event.getX() + "," + event.getY());
+        finish();
+        return false;
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
     public void initEvent() {
+        LinearLayout lTouch = (LinearLayout) findViewById(R.id.l_touch);
+        lTouch.setOnTouchListener(this);
 
         Button button1 = findViewById(R.id.button);
         button1.setOnClickListener(new View.OnClickListener() {
@@ -78,8 +96,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 System.out.println("button2");
-
-                QsControlService qsControlService = new QsControlService();
+                int[] point = new int[2];
+                System.out.println("point：" + view.getX() + "," + view.getY());
             }
         });
 
@@ -117,12 +135,25 @@ public class MainActivity extends AppCompatActivity {
             System.out.println("没有在白名单");
             // 后台保活
             requestIgnoreBatteryOptimizations();
+            Intent intent;
+            try {
+                String manufacturer = Build.MANUFACTURER;
+                // 自启动
+                if ("Xiaomi".equalsIgnoreCase(manufacturer)) {
+                    intent = new Intent();
+                    intent.setComponent(new ComponentName("com.miui.securitycenter", "com.miui.permcenter.autostart.AutoStartManagementActivity"));
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                } else if ("HUAWEI".equalsIgnoreCase(manufacturer)) {
+                    intent = new Intent();
+                    intent.setComponent(new ComponentName("com.huawei.systemmanager", "com.huawei.systemmanager.optimize.process.ProtectActivity"));
+                    startActivity(intent);
+                }
+            } catch (Exception e) {
+                System.out.println("不支持的设备，请手动开启自启动权限");
+                Toast.makeText(this, "不支持的设备，请手动开启自启动权限", Toast.LENGTH_SHORT).show();
+            }
 
-            // 自启动
-            Intent intent = new Intent();
-            intent.setComponent(new ComponentName("com.miui.securitycenter", "com.miui.permcenter.autostart.AutoStartManagementActivity"));
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
 
         } else {
             System.out.println("在白名单");
@@ -132,7 +163,6 @@ public class MainActivity extends AppCompatActivity {
         RequestOverlayPermission(this);
 
         checkAndRequestNotificationPermission();
-
 
 
     }
@@ -218,6 +248,8 @@ public class MainActivity extends AppCompatActivity {
     /**
      * 检查并请求通知权限
      */
+    private static final String CHANNEL_ID = "test_channel";
+
     private void checkAndRequestNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (!NotificationManagerCompat.from(this).areNotificationsEnabled()) {
@@ -228,8 +260,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-    private static final String CHANNEL_ID = "test_channel";
-
 
 
     @Override
@@ -242,6 +272,36 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         Log.d(TAG, "onResume");
+        boolean flag = false;
+        try {
+            Intent intent = getIntent();
+            String data = intent.getStringExtra("data");
+            if (data.equals("QsControlService")) {
+                flag = true;
+            }
+            System.out.println("data " + data);
+        } catch (Exception ignored) {
+        }
+
+        if (flag) {
+            CountDownTimer countDownTimer = new CountDownTimer(500, 10) {
+                @Override
+                public void onTick(long millisUntilFinished) {
+                    // 每次倒计时时执行的代码
+                    System.out.println("倒计时中...剩余时间：" + millisUntilFinished + " ms");
+                }
+
+                @Override
+                public void onFinish() {
+                    // 倒计时结束时执行的代码
+                    System.out.println("倒计时结束");
+                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.showInputMethodPicker();
+                }
+            };
+            // 启动计时器
+            countDownTimer.start();
+        }
     }
 
     @Override
@@ -267,4 +327,6 @@ public class MainActivity extends AppCompatActivity {
         super.onRestart();
         Log.d(TAG, "onRestart");
     }
+
+
 }
