@@ -1,18 +1,19 @@
 package com.yiming;
 
 
-import static java.security.AccessController.getContext;
-
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationManagerCompat;
+import androidx.core.content.ContextCompat;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ActivityManager;
-import android.app.AlertDialog;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -20,34 +21,56 @@ import android.os.PowerManager;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewTreeObserver;
+import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.content.Intent;
+import android.widget.ImageButton;
 
 import java.util.List;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
+    private static final String TAG = "my_test1";
     private final int NOT_CONNECT = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.i("my_test", "onCreate");
-
+        Log.d(TAG, "onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        initEvent();
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.blue2));
 
         getPermission();
+        initEvent();
+
+//        imPop();
     }
 
     public void initEvent() {
+
         Button button1 = findViewById(R.id.button);
         button1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 System.out.println("button1");
-
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.showInputMethodPicker();
+            }
+        });
+        ImageButton image_button1 = findViewById(R.id.image_button);
+        image_button1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                System.out.println("button1");
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.showInputMethodPicker();
             }
         });
         Button button2 = findViewById(R.id.button2);
@@ -57,47 +80,13 @@ public class MainActivity extends AppCompatActivity {
                 System.out.println("button2");
 
                 QsControlService qsControlService = new QsControlService();
-                qsControlService.onStartListening();
             }
         });
 
-    }
 
+        button1.setVisibility(View.INVISIBLE);
+        button2.setVisibility(View.INVISIBLE);
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        Log.i("my_test", "onStart");
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Log.i("my_test", "onResume");
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        Log.i("my_test", "onPause");
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        Log.i("my_test", "onStop");
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        Log.i("my_test", "onDestroy");
-    }
-
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-        Log.i("my_test", "onRestart");
     }
 
 
@@ -116,6 +105,7 @@ public class MainActivity extends AppCompatActivity {
         }
         return false;
     }
+
 
     /**
      * 判断当前电源策略
@@ -140,6 +130,10 @@ public class MainActivity extends AppCompatActivity {
         }
 
         RequestOverlayPermission(this);
+
+        checkAndRequestNotificationPermission();
+
+
 
     }
 
@@ -173,29 +167,104 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
     public static boolean CanShowFloat = false;
 
     private static final int REQUEST_OVERLAY = 5004;
 
-    /** 动态请求悬浮窗权限 */
-    public static void RequestOverlayPermission(Activity Instatnce)
-    {
-        if (Build.VERSION.SDK_INT >= 23)
-        {
-            if (!Settings.canDrawOverlays(Instatnce))
-            {
+    /**
+     * 动态请求悬浮窗权限
+     */
+    public static void RequestOverlayPermission(Activity Instatnce) {
+        if (Build.VERSION.SDK_INT >= 23) {
+            if (!Settings.canDrawOverlays(Instatnce)) {
                 String ACTION_MANAGE_OVERLAY_PERMISSION = "android.settings.action.MANAGE_OVERLAY_PERMISSION";
                 Intent intent = new Intent(ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + Instatnce.getPackageName()));
 
                 Instatnce.startActivityForResult(intent, REQUEST_OVERLAY);
-            }
-            else
-            {
+            } else {
                 CanShowFloat = true;
             }
         }
     }
 
+    /**
+     * 监听键盘是否弹出
+     */
+    public void imPop() {
 
+        View rootView = getWindow().getDecorView().getRootView();
+        rootView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                // 在这里处理软键盘的弹出和隐藏事件
+                Rect r = new Rect();
+                rootView.getWindowVisibleDisplayFrame(r);
+                int screenHeight = rootView.getRootView().getHeight();
+                int keypadHeight = screenHeight - r.bottom;
+
+                if (keypadHeight > screenHeight * 0.15) {
+                    // 软键盘弹出
+                    System.out.println("软键盘弹出");
+                } else {
+                    // 软键盘隐藏
+                    System.out.println("软键盘隐藏");
+                }
+            }
+        });
+
+    }
+
+
+    /**
+     * 检查并请求通知权限
+     */
+    private void checkAndRequestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (!NotificationManagerCompat.from(this).areNotificationsEnabled()) {
+                Intent intent = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS);
+                intent.putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());
+                intent.putExtra(Settings.EXTRA_CHANNEL_ID, CHANNEL_ID);
+                startActivityForResult(intent, 1);
+            }
+        }
+    }
+    private static final String CHANNEL_ID = "test_channel";
+
+
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.d(TAG, "onStart");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d(TAG, "onPause");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.d(TAG, "onStop");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "onDestroy");
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        Log.d(TAG, "onRestart");
+    }
 }
