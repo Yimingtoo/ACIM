@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">ACIM</string>
     <string name="tile_name">切换输入法</string>
+    <string name="title_activity_transparent">TransparentActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
 </resources>
