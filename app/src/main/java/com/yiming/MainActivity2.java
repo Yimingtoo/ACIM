@@ -84,6 +84,7 @@ public class MainActivity2 extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         Log.d(TAG, "onResume");
+        
     }
 
     @Override
