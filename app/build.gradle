@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace 'com.yiming'
+    namespace 'com.yiming.acimapplication'
     compileSdk 34
 
     defaultConfig {
-        applicationId "com.yiming"
+        applicationId "com.yiming.acimapplication"
         minSdk 28
         targetSdk 34
         versionCode 1
@@ -26,9 +26,6 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-    buildFeatures {
-        viewBinding true
-    }
 }
 
 dependencies {
@@ -36,10 +33,7 @@ dependencies {
     implementation libs.appcompat
     implementation libs.material
     implementation libs.constraintlayout
-    implementation libs.androidx.tiles
-    implementation libs.androidx.core.ktx
     testImplementation libs.junit
     androidTestImplementation libs.androidx.test.ext.junit
     androidTestImplementation libs.espresso.core
-
 }
