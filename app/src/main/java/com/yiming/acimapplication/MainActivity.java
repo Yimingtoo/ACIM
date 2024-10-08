@@ -3,6 +3,9 @@ package com.yiming.acimapplication;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -13,7 +16,11 @@ import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import org.w3c.dom.Text;
 
 import java.io.IOException;
 
@@ -49,9 +56,9 @@ public class MainActivity extends AppCompatActivity {
             throw new RuntimeException(e);
         }
 
-        if (isFirstRun()) {
-            obtainFirstPermission();
-        }
+//        if (isFirstRun()) {
+//            obtainFirstPermission();
+//        }
         initEvent();
 
     }
@@ -59,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        obtaionPermissionOnResume();
+//        obtainPermissionOnResume();
         Log.d(TAG, "onResume " + logThread.isAlive() + " " + logThread.isInterrupted());
         if (!logThread.isAlive()) {
             logThread.start();
@@ -91,18 +98,66 @@ public class MainActivity extends AppCompatActivity {
         logThread.setCloseFlag(false);
     }
 
+    @SuppressLint("Recycle")
     public void initEvent() {
         ImageButton image_button1 = findViewById(R.id.image_button);
-        image_button1.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Log.d(TAG, "image_button1 was clicked");
-                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.showInputMethodPicker();
+        image_button1.setOnClickListener(view -> {
+            Log.d(TAG, "image_button1 was clicked");
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.showInputMethodPicker();
+        });
+        LinearLayout linearLayout = findViewById(R.id.l_about);
+        TextView textView1 = findViewById(R.id.tv);
+        TextView textView2 = findViewById(R.id.tv2);
+        TextView textView3 = findViewById(R.id.tv3);
+
+        linearLayout.setOnClickListener(v -> {
+            Log.d(TAG, "linearLayout was clicked");
+            LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) linearLayout.getLayoutParams();
+            ValueAnimator valueAnimator;
+            if (params.weight > 2.8f) {
+                // 收回关于
+                valueAnimator = ValueAnimator.ofFloat(3f, 1f);
+                valueAnimator.setDuration(400);
+                valueAnimator.addUpdateListener(animation -> {
+                    float value = (float) animation.getAnimatedValue();
+                    params.weight = value;
+                    linearLayout.setLayoutParams(params);
+                    LinearLayout.LayoutParams params1 = (LinearLayout.LayoutParams) textView2.getLayoutParams();
+                    params1.weight = (value - 1)/2;
+                    textView2.setLayoutParams(params1);
+                    textView3.setLayoutParams(params1);
+                    textView2.setAlpha((value - 1) / 2);
+                    textView3.setAlpha((value - 1) / 2);
+                });
+                valueAnimator.start();
+            }
+        });
+        textView1.setOnClickListener(v -> {
+            Log.d(TAG, "textView was clicked");
+            LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) linearLayout.getLayoutParams();
+            ValueAnimator valueAnimator;
+            if (params.weight < 1.5f) {
+                // 展开关于
+                valueAnimator = ValueAnimator.ofFloat(1f, 3f);
+                valueAnimator.setDuration(400);
+                valueAnimator.addUpdateListener(animation -> {
+                    float value = (float) animation.getAnimatedValue();
+                    params.weight = value;
+                    linearLayout.setLayoutParams(params);
+                    LinearLayout.LayoutParams params1 = (LinearLayout.LayoutParams) textView2.getLayoutParams();
+                    params1.weight = (value - 1)/2;
+                    textView2.setLayoutParams(params1);
+                    textView3.setLayoutParams(params1);
+                    textView2.setAlpha((value - 1) / 2);
+                    textView3.setAlpha((value - 1) / 2);
+                });
+                valueAnimator.start();
             }
         });
     }
 
+    @Deprecated
     private boolean isFirstRun() {
         SharedPreferences sharedPreferences = getSharedPreferences("FirstRun", 0);
         boolean first_run = sharedPreferences.getBoolean("First", true);
@@ -116,6 +171,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Deprecated
     private void obtainFirstPermission() {
         Log.d(TAG, "Auto start: "
                 + "\n isAutoStartPermissionGranted: " + ACIMUtils.isAutoStartPermissionGranted(this)
@@ -135,7 +191,7 @@ public class MainActivity extends AppCompatActivity {
                         startActivity(ACIMUtils.getAutostartSettingIntent(MainActivity.this));
                     } catch (Exception e) {
                         Toast.makeText(MainActivity.this, "请手动开启自启动权限", Toast.LENGTH_SHORT).show();
-                        obtaionPermissionOnResume();
+                        obtainPermissionOnResume();
                     }
 
                 })
@@ -147,7 +203,8 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void obtaionPermissionOnResume() {
+    @Deprecated
+    public void obtainPermissionOnResume() {
         if (firstPermission == this.BATTERY_OPTIMIZATION) {
             Toast.makeText(MainActivity.this, "请选择“无限制”运行", Toast.LENGTH_SHORT).show();
             if (!ACIMUtils.isIgnoringBatteryOptimizations(this)) {

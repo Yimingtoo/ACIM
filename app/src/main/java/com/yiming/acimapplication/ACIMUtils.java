@@ -163,7 +163,6 @@ public class ACIMUtils {
             while (true) {
                 try {
                     len = is.read(buffer);
-                    System.out.println(rec_str);
                     rec_str = new String(buffer);
                     // 逃课监测log
                     if (rec_str.contains("getCurrentKeyboardType") && closeFlag) {
