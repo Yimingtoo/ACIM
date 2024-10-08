@@ -22,6 +22,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Looper;
 import android.os.PowerManager;
 import android.provider.Settings;
@@ -29,13 +30,21 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
+import android.view.Window;
 import android.view.WindowManager;
+import android.view.WindowMetrics;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.content.Intent;
 import android.widget.ImageButton;
 
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -47,6 +56,7 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
     private final int NOT_CONNECT = 0;
 
     private boolean finishFlag = false;
+    public LogThread logThread;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,8 +67,20 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.blue2));
 
+        try {
+            logThread = new LogThread(){
+                @Override
+                public void runInsert() {
+                    super.runInsert();
+                    finish();
+                }
+            };
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         getPermission();
         initEvent();
+//        imPop();
     }
 
     @Override
@@ -67,6 +89,8 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
         finish();
         return false;
     }
+
+    public boolean logFlag = false;
 
     @SuppressLint("ClickableViewAccessibility")
     public void initEvent() {
@@ -78,8 +102,11 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
             @Override
             public void onClick(View view) {
                 System.out.println("button1");
-                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.showInputMethodPicker();
+//                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+//                imm.showInputMethodPicker();
+//                System.out.println(getWindow().getDecorView().getParent()!= null);
+//                System.out.println(imm.isActive());
+
             }
         });
         ImageButton image_button1 = findViewById(R.id.image_button);
@@ -89,6 +116,7 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
                 System.out.println("button1");
                 InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.showInputMethodPicker();
+                System.out.println(imm.isActive());
             }
         });
         Button button2 = findViewById(R.id.button2);
@@ -108,21 +136,7 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
     }
 
 
-    /**
-     * 判断本应用是否已经位于最前端：已经位于最前端时，返回 true；否则返回 false
-     */
-    public static boolean isRunningForeground(Context context) {
-        ActivityManager activityManager = (ActivityManager) context.getSystemService(ACTIVITY_SERVICE);
-        List<ActivityManager.RunningAppProcessInfo> appProcessInfoList = activityManager.getRunningAppProcesses();
 
-        for (ActivityManager.RunningAppProcessInfo appProcessInfo : appProcessInfoList) {
-            if (appProcessInfo.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND
-                    && appProcessInfo.processName.equals(context.getApplicationInfo().processName)) {
-                return true;
-            }
-        }
-        return false;
-    }
 
 
     /**
@@ -144,7 +158,8 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
                     intent.setComponent(new ComponentName("com.miui.securitycenter", "com.miui.permcenter.autostart.AutoStartManagementActivity"));
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     startActivity(intent);
-                } else if ("HUAWEI".equalsIgnoreCase(manufacturer)) {
+                }
+                else if ("HUAWEI".equalsIgnoreCase(manufacturer)) {
                     intent = new Intent();
                     intent.setComponent(new ComponentName("com.huawei.systemmanager", "com.huawei.systemmanager.optimize.process.ProtectActivity"));
                     startActivity(intent);
@@ -226,6 +241,7 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
         rootView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
+                System.out.println("onGlobalLayout");
                 // 在这里处理软键盘的弹出和隐藏事件
                 Rect r = new Rect();
                 rootView.getWindowVisibleDisplayFrame(r);
@@ -261,6 +277,10 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
         }
     }
 
+    public boolean isDialogShowing() {
+        System.out.println(getWindow().getContext().getClass().getName());
+        return false;
+    }
 
     @Override
     protected void onStart() {
@@ -272,37 +292,36 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
     protected void onResume() {
         super.onResume();
         Log.d(TAG, "onResume");
-        boolean flag = false;
-        try {
-            Intent intent = getIntent();
-            String data = intent.getStringExtra("data");
-            if (data.equals("QsControlService")) {
-                flag = true;
+        logThread.start();
+
+
+        CountDownTimer countDownTimer = new CountDownTimer(700, 100) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                // 每次倒计时时执行的代码
+//                System.out.println("倒计时中...剩余时间：" + millisUntilFinished + " ms");
             }
-            System.out.println("data " + data);
-        } catch (Exception ignored) {
-        }
 
-        if (flag) {
-            CountDownTimer countDownTimer = new CountDownTimer(500, 10) {
-                @Override
-                public void onTick(long millisUntilFinished) {
-                    // 每次倒计时时执行的代码
-                    System.out.println("倒计时中...剩余时间：" + millisUntilFinished + " ms");
+            @Override
+            public void onFinish() {
+                // 倒计时结束时执行的代码
+                System.out.println("onResume 倒计时结束");
+                Intent intent = getIntent();
+                if ("text/plain".equals(intent.getType())) {
+                    String text = intent.getStringExtra(Intent.EXTRA_TEXT);
+                    System.out.println("text/plain " + text);
+                    if (text != null && text.equals("notification")) {
+                        logThread.setCloseFlag(true);
+                    }
                 }
 
-                @Override
-                public void onFinish() {
-                    // 倒计时结束时执行的代码
-                    System.out.println("倒计时结束");
-                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                    imm.showInputMethodPicker();
-                }
-            };
-            // 启动计时器
-            countDownTimer.start();
-        }
+
+            }
+        };
+        // 启动计时器
+        countDownTimer.start();
     }
+
 
     @Override
     protected void onPause() {
@@ -314,6 +333,8 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
     protected void onStop() {
         super.onStop();
         Log.d(TAG, "onStop");
+        logThread.interrupt();
+        logThread.setCloseFlag(false);
     }
 
     @Override
