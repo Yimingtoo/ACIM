@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "ACIM"
+rootProject.name = "ACIMApplication"
 include ':app'
