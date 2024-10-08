@@ -2,4 +2,23 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <color name="light_blue_600">#FF039BE5</color>
+    <color name="light_blue_900">#FF01579B</color>
+    <color name="light_blue_A200">#FF40C4FF</color>
+    <color name="light_blue_A400">#FF00B0FF</color>
+    <color name="black_overlay">#66000000</color>
+
+    <!--透明-->
+    <color name="transparent">#00000000</color>
+    <!--半透明-->
+    <color name="translucent">#22050505</color>
+
+    <!--配色-->
+    <color name="blue1">#FF005db5</color>
+    <color name="blue2">#FF6fa3d4</color>
+    <color name="blue3">#FFdfe8f2</color>
+    <color name="blue4">#D6E2EF</color>
+    <color name="gray1">#FF62666b</color>
+    <color name="gray2">#FFc4ccd5</color>
 </resources>
