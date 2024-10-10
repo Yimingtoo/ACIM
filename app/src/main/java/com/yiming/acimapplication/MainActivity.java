@@ -32,8 +32,7 @@ public class MainActivity extends AppCompatActivity {
     int OVERLAY_PERMISSION = 2;
     int CHECK_PERMISSION = 3;
 
-    private ACIMUtils.LogThread logThread;
-
+    boolean backFlag = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,18 +42,6 @@ public class MainActivity extends AppCompatActivity {
         // 设置状态栏颜色
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.blue2));
-
-        try {
-            logThread = new ACIMUtils.LogThread() {
-                @Override
-                public void runInsert() {
-                    super.runInsert();
-                    finish();
-                }
-            };
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
 
 //        if (isFirstRun()) {
 //            obtainFirstPermission();
@@ -67,24 +54,17 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 //        obtainPermissionOnResume();
-        Log.d(TAG, "onResume " + logThread.isAlive() + " " + logThread.isInterrupted());
-        if (!logThread.isAlive()) {
-            logThread.start();
-        }
         new ACIMUtils.CountDown(700) {
             @Override
             public void onFinish() {
                 super.onFinish();
-                Log.d(TAG, "onResume 倒计时结束");
                 Intent intent = getIntent();
                 if ("text/plain".equals(intent.getType())) {
                     String text = intent.getStringExtra(Intent.EXTRA_TEXT);
                     System.out.println("text/plain " + text);
                     if (text != null && text.equals("CimTileService")) {
-                        // TODO: 处理线程
                         Log.d(TAG, "处理线程");
-                        logThread.setCloseFlag(true);
-
+                        backFlag = true;
                     }
                 }
             }
@@ -94,8 +74,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        logThread.interrupt();
-        logThread.setCloseFlag(false);
+        finish();
     }
 
     @SuppressLint("Recycle")
@@ -124,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
                     params.weight = value;
                     linearLayout.setLayoutParams(params);
                     LinearLayout.LayoutParams params1 = (LinearLayout.LayoutParams) textView2.getLayoutParams();
-                    params1.weight = (value - 1)/2;
+                    params1.weight = (value - 1) / 2;
                     textView2.setLayoutParams(params1);
                     textView3.setLayoutParams(params1);
                     textView2.setAlpha((value - 1) / 2);
@@ -146,7 +125,7 @@ public class MainActivity extends AppCompatActivity {
                     params.weight = value;
                     linearLayout.setLayoutParams(params);
                     LinearLayout.LayoutParams params1 = (LinearLayout.LayoutParams) textView2.getLayoutParams();
-                    params1.weight = (value - 1)/2;
+                    params1.weight = (value - 1) / 2;
                     textView2.setLayoutParams(params1);
                     textView3.setLayoutParams(params1);
                     textView2.setAlpha((value - 1) / 2);
@@ -155,6 +134,17 @@ public class MainActivity extends AppCompatActivity {
                 valueAnimator.start();
             }
         });
+    }
+
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        Log.d(TAG, "onWindowFocusChanged " + hasFocus);
+        if (backFlag) {
+            finish();
+            backFlag = false;
+        }
     }
 
     @Deprecated
