@@ -32,7 +32,7 @@ ACIM安装包可以从[Releases](https://github.com/Yimingtoo/ACIM/releases)页�
 
 HyperOS用户可以按照以下步骤安装，“未查询到此应用的 ICP 备案信息”属于正常的提示，继续安装即可。
 
-![Installation](Info\Installation.jpg)
+![Installation](Info/Installation.jpg)
 
 ## 使用方法
 
@@ -46,7 +46,7 @@ ACIM支持快捷开关快速切换输入法。
 4. 点击切换输入法按钮
 5. 返回即可使用快捷开关切换输入法
 
-![Usage](Info\Usage.jpg)
+![Usage](Info/Usage.jpg)
 
 ## 从源代码构建
 
