@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="8dp"
+        android:background="@color/blue2"
+        android:gravity="center">
+
+    </LinearLayout>
+
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPager"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+    </androidx.viewpager2.widget.ViewPager2>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+
+        android:background="@color/blue2.25">
+        <ImageButton
+            android:id="@+id/image_button_back"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:background="@drawable/image_button_background1"
+            android:foreground="@drawable/image_button_foreground"
+            android:onClick="onImageButtonBackClicked"
+            android:scaleType="centerInside"
+            android:src="@drawable/back"
+            android:layout_marginEnd="30dp"
+            android:layout_centerVertical="true"
+            android:layout_alignParentEnd="true"
+            />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="快捷开关设置"
+            android:textSize="24sp"
+            android:textColor="@color/blue1"
+            android:textStyle="bold"
+            android:layout_centerInParent="true"
+            />
+    </RelativeLayout>
+</LinearLayout>

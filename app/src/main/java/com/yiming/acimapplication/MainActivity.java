@@ -3,10 +3,8 @@ package com.yiming.acimapplication;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
-import android.animation.ObjectAnimator;
-import android.animation.ValueAnimator;
-import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -15,14 +13,9 @@ import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.ImageButton;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import org.w3c.dom.Text;
-
-import java.io.IOException;
+import com.yiming.acimapplication.Tutorial.TutorialActivity;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
@@ -33,20 +26,28 @@ public class MainActivity extends AppCompatActivity {
     int CHECK_PERMISSION = 3;
 
     boolean backFlag = false;
+    boolean isFromCimTileService = false;
+
+    InputMethodManager imm;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         firstPermission = this.NO_PERMISSION;
+
         // 设置状态栏颜色
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.blue2));
 
-//        if (isFirstRun()) {
+
+        imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+
+        if (isFirstRun()) {
 //            obtainFirstPermission();
-//        }
-        initEvent();
+            showTutorialAlertDialog();
+        }
 
     }
 
@@ -54,100 +55,63 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 //        obtainPermissionOnResume();
-        new ACIMUtils.CountDown(700) {
-            @Override
-            public void onFinish() {
-                super.onFinish();
-                Intent intent = getIntent();
-                if ("text/plain".equals(intent.getType())) {
-                    String text = intent.getStringExtra(Intent.EXTRA_TEXT);
-                    System.out.println("text/plain " + text);
-                    if (text != null && text.equals("CimTileService")) {
-                        Log.d(TAG, "处理线程");
-                        backFlag = true;
-                    }
+        SharedPreferences sharedPreferences = getSharedPreferences("isFromCimTileService", 0);
+        isFromCimTileService = sharedPreferences.getBoolean("key1", false);
+
+        if (isFromCimTileService) {
+            sharedPreferences.edit().putBoolean("key1", false).commit();
+            new ACIMUtils.CountDown(500) {
+                @Override
+                public void onFinish() {
+                    super.onFinish();
+                    imm.showInputMethodPicker();
                 }
-            }
-        }.start();
+            }.start();
+        }
     }
 
     @Override
     protected void onStop() {
+        Log.d(TAG, "onStop");
         super.onStop();
-        finish();
+
+//        finish();
     }
 
-    @SuppressLint("Recycle")
-    public void initEvent() {
-        ImageButton image_button1 = findViewById(R.id.image_button);
-        image_button1.setOnClickListener(view -> {
-            Log.d(TAG, "image_button1 was clicked");
-            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.showInputMethodPicker();
-        });
-        LinearLayout linearLayout = findViewById(R.id.l_about);
-        TextView textView1 = findViewById(R.id.tv);
-        TextView textView2 = findViewById(R.id.tv2);
-        TextView textView3 = findViewById(R.id.tv3);
 
-        linearLayout.setOnClickListener(v -> {
-            Log.d(TAG, "linearLayout was clicked");
-            LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) linearLayout.getLayoutParams();
-            ValueAnimator valueAnimator;
-            if (params.weight > 2.8f) {
-                // 收回关于
-                valueAnimator = ValueAnimator.ofFloat(3f, 1f);
-                valueAnimator.setDuration(400);
-                valueAnimator.addUpdateListener(animation -> {
-                    float value = (float) animation.getAnimatedValue();
-                    params.weight = value;
-                    linearLayout.setLayoutParams(params);
-                    LinearLayout.LayoutParams params1 = (LinearLayout.LayoutParams) textView2.getLayoutParams();
-                    params1.weight = (value - 1) / 2;
-                    textView2.setLayoutParams(params1);
-                    textView3.setLayoutParams(params1);
-                    textView2.setAlpha((value - 1) / 2);
-                    textView3.setAlpha((value - 1) / 2);
-                });
-                valueAnimator.start();
-            }
-        });
-        textView1.setOnClickListener(v -> {
-            Log.d(TAG, "textView was clicked");
-            LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) linearLayout.getLayoutParams();
-            ValueAnimator valueAnimator;
-            if (params.weight < 1.5f) {
-                // 展开关于
-                valueAnimator = ValueAnimator.ofFloat(1f, 3f);
-                valueAnimator.setDuration(400);
-                valueAnimator.addUpdateListener(animation -> {
-                    float value = (float) animation.getAnimatedValue();
-                    params.weight = value;
-                    linearLayout.setLayoutParams(params);
-                    LinearLayout.LayoutParams params1 = (LinearLayout.LayoutParams) textView2.getLayoutParams();
-                    params1.weight = (value - 1) / 2;
-                    textView2.setLayoutParams(params1);
-                    textView3.setLayoutParams(params1);
-                    textView2.setAlpha((value - 1) / 2);
-                    textView3.setAlpha((value - 1) / 2);
-                });
-                valueAnimator.start();
-            }
-        });
+    public void onImageButtonClicked(View view) {
+//        Log.d(TAG, "image_button1 was clicked");
+        imm.showInputMethodPicker();
+    }
+
+    public void onAboutButtonClicked(View view) {
+        Intent intent = new Intent(this, AboutActivity.class);
+        startActivity(intent);
+    }
+
+    public void onTutorialButtonClicked(View view) {
+        Intent intent = new Intent(this, TutorialActivity.class);
+        startActivity(intent);
+    }
+
+    public void onTestButtonClicked(View view) {
+
     }
 
 
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
-        Log.d(TAG, "onWindowFocusChanged " + hasFocus);
+//        Log.d(TAG, "onWindowFocusChanged " + hasFocus);
         if (backFlag) {
             finish();
             backFlag = false;
+        } else if (!hasFocus && isFromCimTileService) {
+            isFromCimTileService = false;
+            backFlag = true;
         }
     }
 
-    @Deprecated
     private boolean isFirstRun() {
         SharedPreferences sharedPreferences = getSharedPreferences("FirstRun", 0);
         boolean first_run = sharedPreferences.getBoolean("First", true);
@@ -159,6 +123,22 @@ public class MainActivity extends AppCompatActivity {
             // Toast.makeText(this, "不是第一次", Toast.LENGTH_LONG).show();
             return false;
         }
+    }
+
+    private void showTutorialAlertDialog() {
+        AlertDialog alertDialog = new AlertDialog.Builder(this)
+                .setTitle("提示")
+                .setMessage("是否需要快捷开关设置引导(◍•ᴗ•◍)")
+                .setIcon(R.mipmap.ic_launcher)
+                .setPositiveButton("确定", (dialogInterface, i) -> {
+                    Intent intent = new Intent(MainActivity.this, TutorialActivity.class);
+                    startActivity(intent);
+
+                })
+                .setNegativeButton("不需要", (dialogInterface, i) -> {
+                })
+                .create();
+        alertDialog.show();
     }
 
     @Deprecated
@@ -214,4 +194,6 @@ public class MainActivity extends AppCompatActivity {
             firstPermission = this.NO_PERMISSION;
         }
     }
+
+
 }
