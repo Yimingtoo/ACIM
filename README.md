@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="10%" align="center" src="app\src\main\res\mipmap-xxxhdpi\ic_launcher.png">
+  <img width="10%" align="center" src="Info\icon.png">
 </p>
 <h1 align="center">
   ACIM
@@ -28,7 +28,7 @@
 
 ## 安装
 
-ACIM安装包可以从[Releases](https://github.com/Yimingtoo/ACIM/releases)页面下载。
+ACIM安装包可以从[Github](https://github.com/Yimingtoo/ACIM/releases)[Gitee](https://gitee.com/yimingtoo/ACIM/releases)页面下载。
 
 HyperOS用户可以按照以下步骤安装，“未查询到此应用的 ICP 备案信息”属于正常的提示，继续安装即可。
 
