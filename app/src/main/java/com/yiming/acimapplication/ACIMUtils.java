@@ -4,6 +4,7 @@ import static androidx.core.content.ContextCompat.startActivity;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -22,6 +23,7 @@ import androidx.core.content.ContextCompat;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 public class ACIMUtils {
     private static final String TAG = "ACIMUtils";
@@ -185,5 +187,21 @@ public class ACIMUtils {
             Log.d(TAG, "runInsert");
         }
 
+    }
+
+    public static boolean isAppRunning(Context context) {
+        ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        String packageName = context.getPackageName();
+        List<ActivityManager.RunningAppProcessInfo> runningProcessList = activityManager.getRunningAppProcesses();
+
+        if (runningProcessList != null) {
+            for (ActivityManager.RunningAppProcessInfo processInfo : runningProcessList) {
+                if (processInfo.processName.equals(packageName) && processInfo.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

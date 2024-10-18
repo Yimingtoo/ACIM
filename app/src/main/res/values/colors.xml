@@ -17,6 +17,8 @@
     <!--配色-->
     <color name="blue1">#FF005db5</color>
     <color name="blue2">#FF6fa3d4</color>
+    <color name="blue2.5">#FF85c4ff</color>
+    <color name="blue2.25">#33005db5</color>
     <color name="blue3">#FFdfe8f2</color>
     <color name="blue4">#D6E2EF</color>
     <color name="gray1">#FF62666b</color>
